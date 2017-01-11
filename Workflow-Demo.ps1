@@ -6,3 +6,5 @@ Demo Script for Git Workflow Demo
 Write-Host "This is a Git workflow demo"
 
 Get-WmiObject -Class Win32_ComputerSystem
+
+Write-Host "Ran Command 2"
