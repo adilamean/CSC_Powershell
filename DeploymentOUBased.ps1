@@ -75,6 +75,27 @@ $table | Select @{Name="Name"; Expression={$_.Name.ToUpper()}} | Export-CSV .\"$
 #Calculating XPT Exclusions
 
 
+#Comparing the machines in bPower with AD BUInfo So that we include Managed Workstations only
+
+
+$BuInfo = Import-CSV "D:\AMI Reports\BUInfo.csv"
+$Target = Import-CSV .\"$RegHive"-Target.txt
+
+Join-Object –Left $Target –Right $BuInfo -LeftJoinProperty Name -RightJoinProperty Name –LeftProperties Name -Type OnlyIfInBoth | Select-Object "Name"| Export-CSV .\"$RegHive"-Target2.txt -NoTypeInformation -Encoding UTF8
+
+$total = (Import-CSV .\"$RegHive"-Target2.txt | Measure-Object)
+
+$targetstring = $AppName+",Count"
+
+Write-Output $targetstring | out-file .\"$RegHive"-Report.txt
+
+$targetstring = "Target Machines,"+$total.count
+
+Write-Output $targetstring | out-file .\"$RegHive"-Report.txt -Append
+
+
+### Calculate XPT Exclusions ###
+
 Remove-Item .\"$RegHive"-XPTExcl.txt -Force
 
 $ADGroupData = Import-CSV .\ADGroupData.csv
@@ -103,27 +124,6 @@ $grp.members | Out-File .\"$RegHive"-XPTExcl.txt -Encoding UTF8 -Append
 
 $XPTExcl = Import-CSV .\"$RegHive"-XPTExcl.txt -Header DistinguishedName | Select -Property @{label = 'Name';expression= {$_.DistinguishedName -replace '^CN=|,.*$'}}
 
-
-#Comparing the machines in bPower with AD BUInfo So that we include Managed Workstations only
-
-
-$BuInfo = Import-CSV "D:\AMI Reports\BUInfo.csv"
-$Target = Import-CSV .\"$RegHive"-Target.txt
-
-Join-Object –Left $Target –Right $BuInfo -LeftJoinProperty Name -RightJoinProperty Name –LeftProperties Name -Type OnlyIfInBoth | Select-Object "Name"| Export-CSV .\"$RegHive"-Target2.txt -NoTypeInformation -Encoding UTF8
-
-$total = (Import-CSV .\"$RegHive"-Target2.txt | Measure-Object)
-
-$targetstring = $AppName+",Count"
-
-Write-Output $targetstring | out-file .\"$RegHive"-Report.txt
-
-$targetstring = "Target Machines,"+$total.count
-
-Write-Output $targetstring | out-file .\"$RegHive"-Report.txt -Append
-
-
-### Calculate XPT Exclusions ###
 
 $Target2 = Import-CSV .\"$RegHive"-Target2.txt
 
